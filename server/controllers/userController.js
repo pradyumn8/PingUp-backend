@@ -1,5 +1,6 @@
 import imagekit from '../configs/imageKit.js';
 import Connection from '../models/connection.js';
+import Post from '../models/Post.js';
 import User from '../models/User.js'
 import fs from 'fs';
 
@@ -232,28 +233,44 @@ export const getUserConnections = async (req, res) => {
 export const acceptConnectionRequest = async (req, res) => {
     try {
         const { userId } = req.auth()
-        const {id}= req.body;
+        const { id } = req.body;
 
-        const connection = await Connection.findOne({from_user_id:id,to_user_id:userId})
+        const connection = await Connection.findOne({ from_user_id: id, to_user_id: userId })
 
-        if(!connection){
-            return res.json({success:false,message:'Connection not found'});
+        if (!connection) {
+            return res.json({ success: false, message: 'Connection not found' });
         }
         const user = await User.findById(userId);
         user.connections.push(id);
         await user.save()
-        
+
         const toUser = await User.findById(userId);
         toUser.connections.push(id);
         await toUser.save()
-        
+
 
         connection.status = 'accepted';
         await connection.save()
 
-        res.json({success:true, message:'connection accepted successfuly'})
+        res.json({ success: true, message: 'connection accepted successfuly' })
 
-        } catch (error) {
+    } catch (error) {
+        console.log(error);
+        res.json({ success: false, message: error.message })
+    }
+}
+
+// Get user Profiles
+export const getUserProfiles = async (req, res) => {
+    try {
+        const { profileId } = req.body;
+        const profile = await User.findById(profileId)
+        if (!profile) {
+            return res.json({ success: false, message: 'Profile not found' });
+        }
+        const posts = await Post.find({user: profileId}).populate('user')
+        res.json({success:true, profile, posts})
+    } catch (error) {
         console.log(error);
         res.json({ success: false, message: error.message })
     }
