@@ -47,14 +47,14 @@ export const sendMessage = async (message) => {
                 file: fileBuffer,
                 fileName: image.originalname,
             });
-            media_url = response.url({
-                path: response.filePath;
+            media_url = imagekit.url({
+                path: response.filePath,
                 transformation: [
                     { quality: 'auto' },
                     { format: 'webp' },
                     { width: '1280' }
                 ]
-            })
+            });
         }
         const message = await Message.create({
             from_user_id: userId,
